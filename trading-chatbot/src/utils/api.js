@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://tradingchatbot-frontend-51ld.onrender.com//api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://tradingbot-backend-m76j.onrender.com/api';
 
 const API = axios.create({
   baseURL: API_BASE_URL,
