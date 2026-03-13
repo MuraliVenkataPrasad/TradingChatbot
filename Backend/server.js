@@ -19,27 +19,26 @@ connectDB()
   });
 
 const app = express();
+const allowedOrigins = (process.env.CORS_ORIGINS || '')
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+const staticAllowedOrigins = ['https://tradingchatbot-frontend-51ld.onrender.com'];
+const mergedAllowedOrigins = [...new Set([...staticAllowedOrigins, ...allowedOrigins])];
 
 // Middleware
 app.use(cors({
   origin: function (origin, callback) {
-    const allowedOrigins = [
-      'https://tradingchatbot-frontend-51ld.onrender.com', // Render frontend
-      /^http:\/\/localhost(:\d+)?$/,                        // any localhost port (dev)
-    ];
-
-    // Allow no-origin requests (Postman, curl, etc.)
-    if (!origin) return callback(null, true);
-
-    const isAllowed = allowedOrigins.some(allowed =>
-      allowed instanceof RegExp ? allowed.test(origin) : allowed === origin
-    );
-
-    if (isAllowed) {
-      callback(null, true);
-    } else {
-      callback(new Error(`CORS blocked: ${origin}`));
+    // Allow requests without origin (Postman/cURL), localhost during dev, and configured production origins.
+    if (!origin || /^http:\/\/localhost(:\d+)?$/.test(origin)) {
+      return callback(null, true);
     }
+
+    if (mergedAllowedOrigins.length === 0 || mergedAllowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+
+    return callback(new Error(`CORS blocked: ${origin}`));
   },
   credentials: true,
 }));
