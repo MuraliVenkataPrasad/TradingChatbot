@@ -6,7 +6,6 @@ const connectDB = require('./config/db');
 const dns = require('dns');
 
 dns.setServers(['1.1.1.1', '8.8.8.8']);
-
 dotenv.config({ path: path.join(__dirname, '.env') });
 
 // Connect to MongoDB with error handling
@@ -24,15 +23,27 @@ const app = express();
 // Middleware
 app.use(cors({
   origin: function (origin, callback) {
-    // Allow requests from any localhost port (dev) or no origin (e.g. Postman)
-    if (!origin || /^http:\/\/localhost(:\d+)?$/.test(origin)) {
+    const allowedOrigins = [
+      'https://tradingchatbot-frontend-51ld.onrender.com', // Render frontend
+      /^http:\/\/localhost(:\d+)?$/,                        // any localhost port (dev)
+    ];
+
+    // Allow no-origin requests (Postman, curl, etc.)
+    if (!origin) return callback(null, true);
+
+    const isAllowed = allowedOrigins.some(allowed =>
+      allowed instanceof RegExp ? allowed.test(origin) : allowed === origin
+    );
+
+    if (isAllowed) {
       callback(null, true);
     } else {
-      callback(new Error('Not allowed by CORS'));
+      callback(new Error(`CORS blocked: ${origin}`));
     }
   },
   credentials: true,
 }));
+
 app.use(express.json());
 
 // Routes
