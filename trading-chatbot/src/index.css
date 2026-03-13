@@ -1,0 +1,37 @@
+/* index.css */
+:root {
+  /* Transitions for smooth theme switching */
+  --theme-transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+}
+
+/* LIGHT THEME */
+[data-theme='light'] {
+  --bg-app: #f8fafc;
+  --bg-sidebar: #ffffff;
+  --bg-header: rgba(255, 255, 255, 0.8);
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+  --border: rgba(0, 0, 0, 0.08);
+  --accent: #0ea5e9;
+  --sidebar-active: rgba(14, 165, 233, 0.1);
+}
+
+/* DARK THEME */
+[data-theme='dark'] {
+  --bg-app: #020617;
+  --bg-sidebar: #0f172a;
+  --bg-header: rgba(15, 23, 42, 0.8);
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --border: rgba(255, 255, 255, 0.05);
+  --accent: #38bdf8;
+  --sidebar-active: rgba(56, 189, 248, 0.1);
+}
+
+body {
+  margin: 0;
+  background-color: var(--bg-app);
+  color: var(--text-main);
+  font-family: 'Inter', sans-serif;
+  transition: var(--theme-transition);
+}
