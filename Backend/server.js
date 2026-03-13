@@ -19,31 +19,46 @@ connectDB()
   });
 
 const app = express();
-const allowedOrigins = (process.env.CORS_ORIGINS || '')
-  .split(',')
-  .map((origin) => origin.trim())
-  .filter(Boolean);
-const staticAllowedOrigins = ['https://tradingchatbot-frontend-51ld.onrender.com'];
-const mergedAllowedOrigins = [...new Set([...staticAllowedOrigins, ...allowedOrigins])];
 
-// Middleware
-app.use(cors({
+// ✅ CORS configuration
+const allowedOrigins = [
+  'https://tradingchatbot-frontend-51ld.onrender.com',
+  ...(process.env.CORS_ORIGINS || '').split(',').map(o => o.trim()).filter(Boolean),
+];
+
+const corsOptions = {
   origin: function (origin, callback) {
-    // Allow requests without origin (Postman/cURL), localhost during dev, and configured production origins.
-    if (!origin || /^http:\/\/localhost(:\d+)?$/.test(origin)) {
+    if (
+      !origin ||
+      /^http:\/\/localhost(:\d+)?$/.test(origin) ||
+      allowedOrigins.includes(origin)
+    ) {
       return callback(null, true);
     }
-
-    if (mergedAllowedOrigins.length === 0 || mergedAllowedOrigins.includes(origin)) {
-      return callback(null, true);
-    }
-
     return callback(new Error(`CORS blocked: ${origin}`));
   },
   credentials: true,
-}));
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+};
 
+// ✅ Handle preflight OPTIONS requests for all routes
+app.options('*', cors(corsOptions));
+
+// ✅ Apply CORS to all routes
+app.use(cors(corsOptions));
+
+// ✅ Parse JSON bodies
 app.use(express.json());
+
+// ✅ Health check route - visit this to confirm new code is deployed
+app.get('/health', (req, res) => {
+  res.json({
+    status: 'ok',
+    time: new Date().toISOString(),
+    allowedOrigins,
+  });
+});
 
 // Routes
 app.use('/api/auth', require('./routes/auth'));
@@ -51,12 +66,14 @@ app.use('/api/conversations', require('./routes/conversation'));
 
 const PORT = process.env.PORT || 5000;
 
-// Handle port conflicts gracefully
-const server = app.listen(PORT, () => {
+// Start server
+app.listen(PORT, () => {
   console.log(`✅ Server running on port ${PORT}`);
   console.log(`📡 API endpoints:`);
   console.log(`   - http://localhost:${PORT}/api/auth`);
   console.log(`   - http://localhost:${PORT}/api/conversations`);
+  console.log(`🌐 Allowed origins:`);
+  allowedOrigins.forEach(origin => console.log(`   - ${origin}`));
 }).on('error', (err) => {
   if (err.code === 'EADDRINUSE') {
     console.error(`❌ Port ${PORT} is already in use!`);
